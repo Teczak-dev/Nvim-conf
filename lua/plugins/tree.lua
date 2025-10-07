@@ -9,7 +9,7 @@ return {
 		require("nvim-tree").setup {}
 		local api = require("nvim-tree.api")
 		-- otwórz drzewo
-		vim.keymap.set("n", "<leader>ot", api.tree.open, { desc = "NvimTree: Otwórz" })
+		vim.keymap.set("n", "<leader>tt", api.tree.open, { desc = "NvimTree: Otwórz" })
 		-- zamknij drzewo
 		vim.keymap.set("n", "<leader>ct", api.tree.close, { desc = "NvimTree: Zamknij" })
 	end,
