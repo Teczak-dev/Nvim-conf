@@ -1,11 +1,7 @@
--- lua/config/lsp.lua
-
--- 0) Domyślne root markers dla wszystkich serwerów
 vim.lsp.config('*', {
 	root_markers = { '.git' },
 })
 
--- 1) Ustawienia diagnostyki i UI
 vim.diagnostic.config({
 	virtual_text  = true,
 	severity_sort = true,
@@ -26,7 +22,6 @@ vim.diagnostic.config({
 	},
 })
 
--- 2) Zaokrąglona ramka w podpowiedziach
 local orig = vim.lsp.util.open_floating_preview
 ---@diagnostic disable-next-line: duplicate-set-field
 function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
@@ -38,15 +33,12 @@ function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 	return orig(contents, syntax, opts, ...)
 end
 
--- 3) Zachowanie po podpięciu LSP (klawisze, formatowanie)
 vim.api.nvim_create_autocmd('LspAttach', {
 	group = vim.api.nvim_create_augroup('my.lsp', { clear = true }),
 	callback = function(args)
-		local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
 		local buf    = args.buf
 		local map    = function(mode, lhs, rhs) vim.keymap.set(mode, lhs, rhs, { buffer = buf }) end
 
-		-- Keymaps
 		map('n', 'K', vim.lsp.buf.hover)
 		map('n', 'gd', vim.lsp.buf.definition)
 		map('n', 'gD', vim.lsp.buf.declaration)
@@ -56,34 +48,24 @@ vim.api.nvim_create_autocmd('LspAttach', {
 		map('n', 'gs', vim.lsp.buf.signature_help)
 		map('n', 'gl', vim.diagnostic.open_float)
 		map('n', '<F2>', vim.lsp.buf.rename)
-		map({ 'n', 'x' }, '<F3>', function() vim.lsp.buf.format({ async = true }) end)
+		map({ 'n', 'x' }, '<F3>', function()
+			local ok, conform = pcall(require, "conform")
+			if ok then
+				conform.format({ async = true, lsp_format = "fallback" })
+				return
+			end
+			vim.lsp.buf.format({ async = true })
+		end)
 		map('n', '<F4>', vim.lsp.buf.code_action)
-
-		-- Auto-format on save (WYŁĄCZONE)
-		-- local excluded_filetypes = { php = true }
-		-- if not client:supports_method('textDocument/willSaveWaitUntil')
-		-- 	and client:supports_method('textDocument/formatting')
-		-- 	and not excluded_filetypes[vim.bo[buf].filetype]
-		-- then
-		-- 	vim.api.nvim_create_autocmd('BufWritePre', {
-		-- 		group = vim.api.nvim_create_augroup('my.lsp.format', { clear = false }),
-		-- 		buffer = buf,
-		-- 		callback = function()
-		-- 			vim.lsp.buf.format({ bufnr = buf, id = client.id, timeout_ms = 1000 })
-		-- 		end,
-		-- 	})
-		-- end
 	end,
 })
 
--- 4) Capabilities (działa z i bez nvim-cmp)
 local caps = vim.lsp.protocol.make_client_capabilities()
 local ok_cmp, cmp_lsp = pcall(require, 'cmp_nvim_lsp')
 if ok_cmp then
 	caps = cmp_lsp.default_capabilities(caps)
 end
 
--- 5) Konfiguracje serwerów (bez mason/lspconfig)
 vim.lsp.config['luals'] = {
 	cmd = { 'lua-language-server' },
 	filetypes = { 'lua' },
@@ -116,12 +98,50 @@ vim.lsp.config['cssls'] = {
 
 vim.lsp.config['phpls'] = {
 	cmd = { 'intelephense', '--stdio' },
-	filetypes = { 'php' },
-	root_markers = { 'composer.json', '.git' },
+	filetypes = { 'php', 'blade' },
+	root_markers = { 'composer.json', 'composer.lock', 'artisan', '.git' },
 	capabilities = caps,
 	settings = {
 		intelephense = {
-			files = { maxSize = 5000000 },
+			files = {
+				maxSize = 5000000,
+				associations = { "*.php", "*.blade.php" },
+				exclude = {
+					"**/.git/**",
+					"**/.DS_Store/**",
+					"**/node_modules/**",
+					"**/vendor/**/{Tests,tests}/**",
+					"**/.history/**",
+					"**/storage/**",
+					"**/bootstrap/cache/**"
+				},
+			},
+			environment = {
+				includePaths = { "vendor/" },
+			},
+			stubs = {
+				"apache", "bcmath", "bz2", "calendar", "com_dotnet", "Core",
+				"ctype", "curl", "date", "dba", "dom", "enchant", "exif",
+				"FFI", "fileinfo", "filter", "fpm", "ftp", "gd", "gettext",
+				"gmp", "hash", "iconv", "imap", "intl", "json", "ldap",
+				"libxml", "mbstring", "meta", "mysqli", "oci8", "odbc",
+				"openssl", "pcntl", "pcre", "PDO", "pdo_ibm", "pdo_mysql",
+				"pdo_pgsql", "pdo_sqlite", "pgsql", "Phar", "posix", "pspell",
+				"readline", "Reflection", "session", "shmop", "SimpleXML",
+				"snmp", "soap", "sockets", "sodium", "SPL", "sqlite3",
+				"standard", "superglobals", "sysvmsg", "sysvsem", "sysvshm",
+				"tidy", "tokenizer", "xml", "xmlreader", "xmlrpc", "xmlwriter",
+				"xsl", "Zend OPcache", "zip", "zlib",
+				"wordpress", "laravel"
+			},
+			completion = {
+				fullyQualifyGlobalConstantsAndFunctions = false,
+				insertUseDeclaration = true,
+				triggerParameterHints = true,
+			},
+			format = {
+				enable = true,
+			},
 		},
 	},
 }
@@ -142,12 +162,12 @@ vim.lsp.config['ts_ls'] = {
 vim.lsp.config['clangd'] = {
 	cmd = { 'clangd' },
 	filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
-	root_markers = { 'compile_commands.json', 'compile_flags.txt', '.clangd', '.git' },
+	root_markers = { 'compile_commands.json', 'compile_flags.txt', 'CMakeLists.txt', 'Makefile', '.clangd', '.git' },
 	capabilities = caps,
 }
 
 vim.lsp.config['pyright'] = {
-	cmd = { 'pyright-langserver', '--stdio' }, -- lub: { 'basedpyright-langserver', '--stdio' }
+	cmd = { 'pyright-langserver', '--stdio' },
 	filetypes = { 'python' },
 	root_markers = { 'pyproject.toml', 'requirements.txt', 'setup.py', 'setup.cfg', '.git' },
 	capabilities = caps,
@@ -160,13 +180,41 @@ vim.lsp.config['pyright'] = {
 		},
 	},
 }
+vim.lsp.config['rust_analyzer'] = {
+	cmd = { 'rust-analyzer' },
+	filetypes = { 'rust' },
+	root_markers = { 'Cargo.toml', '.git' },
+	capabilities = caps,
+	settings = {
+		['rust-analyzer'] = {
+			cargo = {
+				allFeatures = true,
+			},
+			check = {
+				command = 'clippy',
+			},
+			completion = {
+				addCallArgumentSnippets = true,
+				addCallParenthesis = true,
+			},
+			diagnostics = {
+				enable = true,
+				experimental = { enable = true },
+			},
+			inlayHints = {
+				enable = true,
+				typeHints = true,
+				parameterHints = true,
+			},
+		},
+	},
+}
 
--- 6) Włącz serwery
-for _, name in ipairs({ 'luals', 'cssls', 'ts_ls', 'phpls', 'clangd', 'pyright' }) do
+
+for _, name in ipairs({ 'luals', 'cssls', 'ts_ls', 'phpls', 'clangd', 'pyright', 'rust_analyzer' }) do
 	vim.lsp.enable(name)
 end
 
--- 7) (Opcjonalnie) Minimalny zamiennik LspInfo
 vim.api.nvim_create_user_command('LspInfoCore', function()
 	local bufnr   = vim.api.nvim_get_current_buf()
 	local clients = vim.lsp.get_clients({ buf = bufnr })

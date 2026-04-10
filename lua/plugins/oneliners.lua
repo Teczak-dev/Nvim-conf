@@ -22,7 +22,7 @@ return {
 				auto_trigger = true,
 				debounce = 75,
 				keymap = {
-					accept = "<C-y>", -- zamiast <M-l>
+					accept = "<C-y>",
 					next = "<M-]>",
 					prev = "<M-[>",
 					dismiss = "<C-]>",
@@ -31,12 +31,15 @@ return {
 			panel = { enabled = false },
 		},
 	},
-	-- opcjonalnie integracja z nvim-cmp (jeśli go używasz)
 	{
 		"zbirenbaum/copilot-cmp",
 		dependencies = { "zbirenbaum/copilot.lua" },
 		config = function()
 			require("copilot_cmp").setup()
 		end,
+	},
+	{
+		'vyfor/cord.nvim',
+		build = ':Cord update',
 	},
 }
