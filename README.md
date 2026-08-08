@@ -17,6 +17,7 @@ Ten plik opisuje konfigurację Neovim znajdującą się w katalogu `~/.config/nv
 - `telescope.nvim` – szybkie wyszukiwanie plików i treści.
 - `lualine.nvim` – estetyczny pasek statusu.
 - `nvim-lspconfig` – wsparcie dla LSP (Language Server Protocol).
+- `mason.nvim` – automatyczna instalacja narzędzi LSP.
 
 ### Skróty klawiszowe
 
@@ -47,6 +48,7 @@ This file describes the Neovim configuration located in `~/.config/nvim`. It con
 - `telescope.nvim` – fast file and content search.
 - `lualine.nvim` – aesthetic status line.
 - `nvim-lspconfig` – Language Server Protocol support.
+- `mason.nvim` – automatic LSP tool installation.
 
 ### Keybindings
 

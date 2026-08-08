@@ -19,6 +19,8 @@ return{
 		"html",
 		"css",
 		"json",
+		"php",
+		"blade",
 	    },
 	    auto_install = false,
 	})
