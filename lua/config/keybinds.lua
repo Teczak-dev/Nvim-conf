@@ -8,3 +8,6 @@ vim.keymap.set("n", "<leader>pv", function()
         vim.fn.jobstart({ "qlmanage", "-p", file }, { detach = true })
     end
 end, { desc = "QuickLook podgląd pliku" })
+
+vim.keymap.set("n", "<leader>r", ":!./run.sh<CR>", { desc = "Build & Run" })
+vim.keymap.set("n", "<leader>d", ":!./run.sh debug<CR>", { desc = "Debug Game" })
