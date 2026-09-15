@@ -10,4 +10,4 @@ vim.keymap.set("n", "<leader>pv", function()
 end, { desc = "QuickLook podgląd pliku" })
 
 vim.keymap.set("n", "<leader>r", ":!./run.sh<CR>", { desc = "Build & Run" })
-vim.keymap.set("n", "<leader>d", ":!./run.sh debug<CR>", { desc = "Debug Game" })
+vim.keymap.set("n", "<leader>d", ":split | term ./run.sh debug<CR>", { desc = "Debug Game" })
